@@ -1,0 +1,52 @@
+# !/bin/sh
+REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
+cd "$REPO_ROOT" || exit 1  # Run from repo root
+# cd "${0%/*}" || exit 1    # Run from the script's directory
+
+# -----------------------------
+# User input and date
+# -----------------------------
+printf "Enter case index: "
+read i
+# d=$(date +%d%b%Y | tr '[:upper:]' '[:lower:]')
+# printf "Enter date (e.g., 17feb2026): "
+# read d
+default_date=$(date +%d%b%Y | tr '[:upper:]' '[:lower:]')
+
+read -p "Enter date [${default_date}]: " d
+d=${d:-$default_date}
+# -----------------------------
+# Create directories
+# -----------------------------
+dir="user_data/case_data/${i}_${d}"
+
+mkdir -p "$dir"
+mkdir -p "${dir}/logs"
+mkdir -p "${dir}/system"
+mkdir -p "${dir}/code"
+
+cp -r 0 "$dir"/
+echo "Copying initial conditions from 0/ to ${dir}/0/"
+latest=$(find . -maxdepth 1 -type d -regextype posix-extended -regex '\./[0-9]+(\.[0-9]+)?' | sort -V | tail -n 1)
+cp -r "$latest" "$dir/"
+cp -r system/blockMeshDict "$dir"/system/
+cp -r system/controlDict "$dir"/system/
+echo "Copying blockMeshDict and controlDict to ${dir}/system/"
+
+cp log.run "$dir"/logs/
+echo "Copying log.run to ${dir}/logs/"
+
+#!/bin/bash
+
+# Default list of files (hard-coded)
+DEFAULT_LIST=(
+    "log.run"
+    "system/controlDict"
+    "0/U"
+)
+
+
+find CSE_H3_PaperCode_DD_EE/ -maxdepth 1 -type f -exec cp {} "${dir}/code/" \;
+echo "Copying code files from CSE_H3_PaperCode_DD_EE/ to ${dir}/code/ ..."
+
+echo "Done." 

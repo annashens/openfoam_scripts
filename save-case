@@ -1,0 +1,107 @@
+# !/bin/sh
+REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
+cd "$REPO_ROOT" || exit 1  # Run from repo root
+# cd "${0%/*}" || exit 1    # Run from the script's directory
+
+# -----------------------------
+# User input and date
+# -----------------------------
+printf "Enter case index: "
+read i
+# d=$(date +%d%b%Y | tr '[:upper:]' '[:lower:]')
+printf "Enter date (e.g., 17feb2026): "
+read d
+
+# -----------------------------
+# Create directories
+# -----------------------------
+dir="user_data/case_data/${i}_${d}"
+csv_dir="${dir}/csv"
+mkdir -p "$dir"
+mkdir -p "$csv_dir"
+
+
+
+# -----------------------------
+# Step 1: Run ParaView locally
+# -----------------------------
+# Prompt to open ParaView
+printf "Open ParaView state? (y/n) [y]: "
+read open_paraview
+open_paraview=${open_paraview:-y}
+OPEN_PARAVIEW=false
+if [ "$open_paraview" = "y" ] || [ "$open_paraview" = "Y" ]; then
+    OPEN_PARAVIEW=true
+fi
+# OPEN_PARAVIEW=false
+if [ "$OPEN_PARAVIEW" = true ]; then
+    # Create dummy foam file
+    touch premixed_hydrogen.foam
+    echo "Opening ParaView state..."
+    paraview --state="states/h2o.pvsm" &
+fi
+
+# Prompt to save raw CSVs via pvpython
+printf "Save raw CSVs from ParaView? (y/n) [y]: "
+read paraview_save
+paraview_save=${paraview_save:-y}
+PARAVIEW_SAVE=false
+if [ "$paraview_save" = "y" ] || [ "$paraview_save" = "Y" ]; then
+    PARAVIEW_SAVE=true
+fi
+# PARAVIEW_SAVE=true
+if [ "$PARAVIEW_SAVE" = true ]; then
+    echo "Saving raw CSVs from ParaView..."
+    pvpython scripts/python/src/save_to_csv.py "$csv_dir"
+fi
+
+# -----------------------------
+# Step 2: Run CSV reduction inside conda-venv
+# -----------------------------
+# Build Python flags
+
+# Ask user for options
+printf "Save cleaned CSV files? (y/n) [n]: "
+read save_cleaned_csv
+save_cleaned_csv=${save_cleaned_csv:-n}
+SAVE_CLEANED=false
+if [ "$save_cleaned_csv" = "y" ] || [ "$save_cleaned_csv" = "Y" ]; then
+    SAVE_CLEANED=true
+fi 
+printf "Delete original CSV files after processing? (y/n) [n]: "
+read delete_original
+delete_original=${delete_original:-n}
+DELETE_ORIGINAL=false
+if [ "$delete_original" = "y" ] || [ "$delete_original" = "Y" ]; then
+    DELETE_ORIGINAL=true
+fi
+# DELETE_ORIGINAL=true    # toggle deleting original CSVs
+
+printf "Use streaming Parquet (memory-efficient)? (y/n) [y]: "
+read use_streaming
+use_streaming=${use_streaming:-y}
+USE_STREAMING=true
+if [ "$use_streaming" = "n" ] || [ "$use_streaming" = "N" ]; then
+    USE_STREAMING=false
+fi
+
+DROP_PREFIXES=("ddt")   # add more prefixes if needed
+# Build Python flags
+PY_FLAGS=""
+[ "$SAVE_CLEANED" = true ] && PY_FLAGS="$PY_FLAGS --save-cleaned"
+[ "$DELETE_ORIGINAL" = true ] && PY_FLAGS="$PY_FLAGS --delete-original"
+[ "$USE_STREAMING" = true ] && PY_FLAGS="$PY_FLAGS --use-streaming"
+[ "${#DROP_PREFIXES[@]}" -gt 0 ] && PY_FLAGS="$PY_FLAGS --drop-prefixes ${DROP_PREFIXES[*]}"
+
+echo "Activating conda environment for CSV reduction..."
+source ~/miniconda3/etc/profile.d/conda.sh
+# Activate venv and run
+conda activate conda-venv
+python scripts/python/src/reduce_files.py "$csv_dir" $PY_FLAGS
+conda deactivate
+
+# -----------------------------
+# Step 3: Deactivate environment
+# -----------------------------
+conda deactivate
+echo "All steps complete."

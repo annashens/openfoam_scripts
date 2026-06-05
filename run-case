@@ -1,0 +1,118 @@
+# !/bin/sh
+REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
+cd "$REPO_ROOT" || exit 1  # Run from repo root
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# -----------------------------
+# Step 0: User inputs
+# -----------------------------
+clean_folder="y"
+run_parallel="y"
+
+# -----------------------------
+# Step 1: Create case directory
+# -----------------------------
+d=$(date +%d%b%Y | tr '[:upper:]' '[:lower:]')
+printf "Enter case index: "
+read i
+
+dir="user_data/case_data/${i}_${d}"
+mkdir -p "$dir"
+mkdir -p "${dir}/logs"
+
+# -----------------------------
+# Step 2: Clean directory of previous simulation data
+# -----------------------------
+# printf "Clean? (y/n): "
+# read clean_folder
+# clean_folder=${clean_folder:-y}
+
+
+if [ "$clean_folder" = "y" ]; then
+    # . $WM_PROJECT_DIR/bin/tools/CleanFunctions
+    # cleanCase
+    # CLEAN_FOLDER=true
+    ./scripts/clean-case
+    CLEAN_FOLDER=true
+elif [ "$clean_folder" = "n" ]; then
+    echo "Clean step skipped (clean_folder=n)" >&2
+else
+    echo "Invalid input: use 'y' or 'n'" >&2
+    exit 1
+fi
+# -----------------------------
+# Step 3: Generate Mesh
+# -----------------------------
+
+# Generate mesh
+runApplication blockMesh
+mv log.blockMesh "$dir"/logs/"$i"_blockMesh.txt
+
+runApplication checkMesh
+mv log.checkMesh "$dir"/logs/"$i"_checkMesh.txt
+
+# -----------------------------
+# Step 4: Set fields
+# -----------------------------
+startFrom="startTime"
+startTime="0"
+writeInterval="0.005"
+endtime="0.5"
+
+# runApplication setFields
+
+rm -rf constant/chemistryProperties > /dev/null 2>&1
+
+runApplication -a foamDictionary -entry "chemistry" -set "off" constant/chemistryProperties
+runApplication -a foamDictionary -entry "radiation" -set "off" constant/radiationProperties
+runApplication -a foamDictionary -entry "combustionModel" -set "none" constant/combustionProperties
+
+runApplication -a foamDictionary -entry "radiation/type" -set "none" constant/fvOptions
+
+runApplication -a foamDictionary -entry "startFrom" -set $startFrom system/controlDict
+runApplication -a foamDictionary -entry "startTime" -set $startTime system/controlDict
+runApplication -a foamDictionary -entry "writeInterval" -set $writeInterval system/controlDict
+runApplication -a foamDictionary -entry "endTime" -set $endtime system/controlDict
+
+runApplication -a foamDictionary -entry "maxCo" -set 0.5 system/controlDict
+
+# -----------------------------
+# Step 5: Run simulation case
+# -----------------------------
+
+# Set application name
+application=$(getApplication)
+
+if [ "$run_parallel" = "y" ]; then
+    runApplication decomposePar -force
+    mv log.decomposePar "$dir"/logs/"$i"_decomposePar.txt
+
+    echo "Selected parallel mode." >&2
+    mpirun -np 16 --oversubscribe $application -parallel 2>&1 | tee log."$application"
+    mv log."$application" "$dir"/logs/"$i"_"$application".txt
+
+    runApplication reconstructPar 
+    mv log.reconstructPar "$dir"/logs/"$i"_reconstructPar.txt
+    rm -rf processor*
+elif [ "$run_parallel" = "n" ]; then
+    echo "Selected serial mode." >&2
+    runApplication -o $application
+    mv log."$application" "$dir"/logs/"$i"_"$application".txt
+else
+    echo "Invalid input: use 'y' or 'n'" >&2
+    exit 1
+fi
+
+# -----------------------------
+# Step 6: Postprocess
+# -----------------------------
+# # postProcess -func sampleDict -latestTime
+# # mv postProcessing/sampleDict/* "$dir"/csv
+
+# -----------------------------
+# Step 7: Open in Paraview
+# -----------------------------
+touch case.foam   # or sometimes you might use paraFoam -touch
+paraview --state="states/velocity_nut4.pvsm" &

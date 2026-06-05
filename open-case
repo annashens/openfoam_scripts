@@ -1,0 +1,33 @@
+# !/bin/sh
+REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
+cd "$REPO_ROOT" || exit 1  # Run from repo root
+# cd "${0%/*}" || exit 1    # Run from the script's directory
+
+DEFAULT_STATE="zvar_ztilde"
+
+# -----------------------------
+# Step 1: Reconstruct case if needed
+# -----------------------------
+if compgen -G "processor*" > /dev/null; then
+echo "Processor directories found. Running reconstructPar..."
+reconstructPar -latestTime
+else
+echo "No processor directories found. Skipping reconstructPar."
+fi
+
+# -----------------------------
+# Step 2: Read State File and Open ParaView
+# -----------------------------
+read -p "Enter state file [default ${DEFAULT_STATE}]: " STATE_NAME
+STATE_NAME=${STATE_NAME:-$DEFAULT_STATE}
+
+STATE_FILE="states/${STATE_NAME}.pvsm"
+if [[ -z "$STATE_FILE" ]]; then
+    STATE_FILE="$DEFAULT_STATE"
+fi
+
+if [[ "$STATE_FILE" == "none" ]]; then
+    paraview case.foam &
+else
+    paraview --state="$STATE_FILE" &
+fi
