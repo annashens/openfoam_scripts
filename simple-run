@@ -11,7 +11,7 @@ echo "BlockMesh..."
 blockMesh 2>&1 | tee log.blockMesh 
 
 echo "Decomposing..." 
-decomposePar -force 2>&1 | tee log.decoposePar 
+decomposePar -force 2>&1 | tee log.decomposePar 
 
 mpirun -np 16 --oversubscribe CSE_H3 -parallel 2>&1 \
 | uniq \

@@ -46,7 +46,11 @@ DEFAULT_LIST=(
 )
 
 
-find CSE_H3_PaperCode_DD_EE/ -maxdepth 1 -type f -exec cp {} "${dir}/code/" \;
-echo "Copying code files from CSE_H3_PaperCode_DD_EE/ to ${dir}/code/ ..."
+find CSE_H2_PMF/ -maxdepth 1 -type f -exec cp {} "${dir}/code/" \;
+echo "Copying code files from CSE_H2_PMF/ to ${dir}/code/ ..."
+notes_file="${dir}/notes.txt"
+
+echo "Enter notes for this case. Finish with Ctrl+D:"
+cat > "$notes_file"
 
 echo "Done." 

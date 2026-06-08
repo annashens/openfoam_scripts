@@ -26,20 +26,20 @@ mkdir -p "$csv_dir"
 # Step 1: Run ParaView locally
 # -----------------------------
 # Prompt to open ParaView
-printf "Open ParaView state? (y/n) [y]: "
-read open_paraview
-open_paraview=${open_paraview:-y}
-OPEN_PARAVIEW=false
-if [ "$open_paraview" = "y" ] || [ "$open_paraview" = "Y" ]; then
-    OPEN_PARAVIEW=true
-fi
+# printf "Open ParaView state? (y/n) [y]: "
+# read open_paraview
+# open_paraview=${open_paraview:-y}
 # OPEN_PARAVIEW=false
-if [ "$OPEN_PARAVIEW" = true ]; then
-    # Create dummy foam file
-    touch premixed_hydrogen.foam
-    echo "Opening ParaView state..."
-    paraview --state="states/h2o.pvsm" &
-fi
+# if [ "$open_paraview" = "y" ] || [ "$open_paraview" = "Y" ]; then
+#     OPEN_PARAVIEW=true
+# fi
+# # OPEN_PARAVIEW=false
+# if [ "$OPEN_PARAVIEW" = true ]; then
+#     # Create dummy foam file
+#     touch premixed_hydrogen.foam
+#     echo "Opening ParaView state..."
+#     paraview --state="states/h2o.pvsm" &
+# fi
 
 # Prompt to save raw CSVs via pvpython
 printf "Save raw CSVs from ParaView? (y/n) [y]: "
@@ -52,7 +52,7 @@ fi
 # PARAVIEW_SAVE=true
 if [ "$PARAVIEW_SAVE" = true ]; then
     echo "Saving raw CSVs from ParaView..."
-    pvpython scripts/python/src/save_to_csv.py "$csv_dir"
+    pvpython scripts/python/save_to_csv.py "$csv_dir"
 fi
 
 # -----------------------------
@@ -86,18 +86,40 @@ if [ "$use_streaming" = "n" ] || [ "$use_streaming" = "N" ]; then
 fi
 
 DROP_PREFIXES=("ddt")   # add more prefixes if needed
+
+
+# -----------------------------
+# NEW: default-drop control
+# -----------------------------
+DROP_COLS=(
+    C2H C2H2 C2H3 C2H4 C2H5 C2H6 C3H7 C3H8 CH
+    CH2 CH2CHO CH2CO CH2O CH2OH CH3 CH3CHO
+    CH3O CH3OH CH4 HCCO HCCOH HCO
+    saved saved_2 saved_3 saved_4 saved_5 saved_6
+)
+
+
 # Build Python flags
 PY_FLAGS=""
 [ "$SAVE_CLEANED" = true ] && PY_FLAGS="$PY_FLAGS --save-cleaned"
 [ "$DELETE_ORIGINAL" = true ] && PY_FLAGS="$PY_FLAGS --delete-original"
 [ "$USE_STREAMING" = true ] && PY_FLAGS="$PY_FLAGS --use-streaming"
 [ "${#DROP_PREFIXES[@]}" -gt 0 ] && PY_FLAGS="$PY_FLAGS --drop-prefixes ${DROP_PREFIXES[*]}"
+# existing prefix logic
+[ "${#DROP_PREFIXES[@]}" -gt 0 ] && PY_FLAGS="$PY_FLAGS --drop-prefixes ${DROP_PREFIXES[@]}"
 
+if [ "$NO_DEFAULT_DROP" = true ]; then
+    PY_FLAGS="$PY_FLAGS --no-default-drop"
+fi
+
+if [ "${#DROP_COLS[@]}" -gt 0 ]; then
+    PY_FLAGS="$PY_FLAGS --drop-cols ${DROP_COLS[@]}"
+fi
 echo "Activating conda environment for CSV reduction..."
 source ~/miniconda3/etc/profile.d/conda.sh
 # Activate venv and run
 conda activate conda-venv
-python scripts/python/src/reduce_files.py "$csv_dir" $PY_FLAGS
+python scripts/python/reduce_files.py "$csv_dir" $PY_FLAGS
 conda deactivate
 
 # -----------------------------

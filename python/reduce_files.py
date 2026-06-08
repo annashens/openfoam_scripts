@@ -1,4 +1,4 @@
-from python.helpers.paths import remove_system_paths
+from helpers.paths import remove_system_paths
 remove_system_paths()
 import os
 import glob
@@ -13,7 +13,8 @@ def reduce_csv_files(
     unwanted_prefixes=None,
     save_cleaned_csv=False,
     delete_original=False,
-    use_streaming=False
+    use_streaming=False,
+    drop_cols=None, 
 ):
     remove_system_paths()
     unwanted_prefixes = unwanted_prefixes or ["ddt"]
@@ -32,8 +33,14 @@ def reduce_csv_files(
         parquet_writer = None
 
     for f in csv_files:
-        df = pd.read_csv(f)
+        df = pd.read_csv(f,dtype=float)
+        existing_to_drop = [c for c in drop_cols if c in df.columns]
+        missing_cols = [c for c in drop_cols if c not in df.columns]
 
+        if missing_cols:
+            print(f"[WARN] Missing columns in {f}: {missing_cols}")
+
+        df = df.drop(columns=existing_to_drop, errors="ignore")
         # Save points once
         if not points_saved:
             points = df[["Points:0","Points:1","Points:2"]]
@@ -99,18 +106,50 @@ def reduce_csv_files(
         print(f"Deleted original CSV: {f}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("outDir")
-    parser.add_argument("--save-cleaned", action="store_true")
-    parser.add_argument("--delete-original", action="store_true")
-    parser.add_argument("--drop-prefixes", nargs="*", default=["ddt"])
-    parser.add_argument("--use-streaming", action="store_true")  # <--- optional flag
-    args = parser.parse_args()
+    TEST_MODE = False
 
-    reduce_csv_files(
-        outDir=args.outDir,
-        unwanted_prefixes=args.drop_prefixes,
-        save_cleaned_csv=args.save_cleaned,
-        delete_original=args.delete_original,
-        use_streaming=args.use_streaming
-    )
+    if TEST_MODE:
+        date = "2026-06-08"
+
+        reduce_csv_files(
+            outDir=f"user_data/case_data/28_07jun2026/csv",
+            unwanted_prefixes=["ddt"],
+            save_cleaned_csv=True,
+            delete_original=False,
+            use_streaming=True,
+            drop_cols=[
+                'C2H','C2H2', 'C2H3', 'C2H4', 'C2H5', 'C2H6', 'C3H7', 'C3H8', 'CH',
+                'CH2', 'CH2(S)', 'CH2CHO', 'CH2CO', 'CH2O', 'CH2OH', 'CH3', 'CH3CHO',
+                'CH3O', 'CH3OH', 'CH4',  'HCCO', 'HCCOH', 'HCO',
+                'saved','saved_2','saved_3','saved_4','saved_5','saved_6',
+            ],
+        )
+    else:
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "--drop-cols",
+            nargs="*",
+            default=[],
+            help="List of columns to drop if they exist"
+        )
+        parser = argparse.ArgumentParser()
+        parser.add_argument("outDir")
+        parser.add_argument("--save-cleaned", action="store_true")
+        parser.add_argument("--delete-original", action="store_true")
+        parser.add_argument("--drop-prefixes", nargs="*", default=["ddt"])
+        parser.add_argument("--use-streaming", action="store_true")  # <--- optional flag
+        parser.add_argument(
+        "--drop-cols",
+        nargs="*",
+        default=[]
+        )
+        args = parser.parse_args()
+
+        reduce_csv_files(
+            outDir=args.outDir,
+            unwanted_prefixes=args.drop_prefixes,
+            save_cleaned_csv=args.save_cleaned,
+            delete_original=args.delete_original,
+            use_streaming=args.use_streaming,
+            drop_cols=args.drop_cols, 
+        )
