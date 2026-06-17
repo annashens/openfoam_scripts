@@ -3,7 +3,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
 cd "$REPO_ROOT" || exit 1  # Run from repo root
 # cd "${0%/*}" || exit 1    # Run from the script's directory
 
-STATE_NAME="temp_HR_vel_scaled"
+STATE_NAME="temp_HR"
 
 # -----------------------------
 # Step 1: Reconstruct case if needed

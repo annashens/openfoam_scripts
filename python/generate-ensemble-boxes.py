@@ -1,12 +1,12 @@
 import numpy as np
 import sys; print(sys.executable)
 import pandas as pd
-from python.helpers.sample import axial_cutline
-from python.helpers.general import get_int_input
+from helpers.sample import axial_cutline
+from helpers.general import get_int_input
 # path of csv with cell data points
-DEFAULT_DATA_PATH = 'user_data/case_data/16_26may2026/csv/points.csv'
+DEFAULT_DATA_PATH = 'user_data/case_data/2_15jun2026/csv/points.csv'
 df_path = get_int_input("Enter path to all.csv with point data", DEFAULT_DATA_PATH)
-output_folder = 'openfoam_scripts/python/output/'
+output_folder = 'scripts/python/output/'
 file_name = 'CoordinatesOfEnsembleBoxes.csv'
 
 DEFAULT_NUM_SUBDIV = 2

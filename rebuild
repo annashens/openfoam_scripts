@@ -3,8 +3,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
 cd "$REPO_ROOT" || exit 1  # Run from repo root
 # cd "${0%/*}" || exit 1    # Run from the script's directory
 
-wclean CSE_H3_PaperCode_DD_EE
-wmake CSE_H3_PaperCode_DD_EE 2>&1 | tee build.log
+wclean CSE_H2_PMF 2>&1 | tee clean.log
+wmake CSE_H2_PMF 2>&1 | tee build.log
 
 echo "Errors:"
 grep -ic error build.log
