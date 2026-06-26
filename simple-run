@@ -9,7 +9,6 @@ rm -rf processor* postProcessing log.*  CoreEnsemble_at**
 
 echo "BlockMesh..." 
 blockMesh 2>&1 | tee log.blockMesh 
-
 echo "Decomposing..." 
 decomposePar -force 2>&1 | tee log.decomposePar 
 
