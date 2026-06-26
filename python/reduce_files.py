@@ -112,7 +112,7 @@ if __name__ == "__main__":
         date = "2026-06-08"
 
         reduce_csv_files(
-            outDir=f"user_data/case_data/28_07jun2026/csv",
+            outDir=f"postProcess/triage/28_07jun2026/csv",
             unwanted_prefixes=["ddt"],
             save_cleaned_csv=True,
             delete_original=False,

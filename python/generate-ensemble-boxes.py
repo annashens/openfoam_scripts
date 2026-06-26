@@ -4,8 +4,8 @@ import pandas as pd
 from helpers.sample import axial_cutline
 from helpers.general import get_int_input
 # path of csv with cell data points
-# DEFAULT_DATA_PATH = 'user_data/case_data/2_15jun2026/csv/points.csv'
-DEFAULT_DATA_PATH='user_data/case_data/33_18jun2026/csv/points.csv'
+# DEFAULT_DATA_PATH = 'postProcess/triage/2_15jun2026/csv/points.csv'
+DEFAULT_DATA_PATH='postProcess/triage/33_18jun2026/csv/points.csv'
 df_path = get_int_input("Enter path to all.csv with point data", DEFAULT_DATA_PATH)
 output_folder = 'scripts/python/output/'
 file_name = 'CoordinatesOfEnsembleBoxes.csv'

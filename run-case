@@ -18,7 +18,7 @@ d=$(date +%d%b%Y | tr '[:upper:]' '[:lower:]')
 printf "Enter case index: "
 read i
 
-dir="user_data/case_data/${i}_${d}"
+dir="postProcess/triage/${i}_${d}"
 mkdir -p "$dir"
 mkdir -p "${dir}/logs"
 

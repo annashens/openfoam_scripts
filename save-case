@@ -15,7 +15,7 @@ read d
 # -----------------------------
 # Create directories
 # -----------------------------
-dir="user_data/case_data/${i}_${d}"
+dir="postProcess/triage/${i}_${d}"
 csv_dir="${dir}/csv"
 mkdir -p "$dir"
 mkdir -p "$csv_dir"

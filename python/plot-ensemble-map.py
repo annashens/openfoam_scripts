@@ -11,7 +11,7 @@ from python.helpers.sample import axial_cutline
 from python.helpers.general import get_int_input
 
 
-DEFAULT_DATA_PATH = 'user_data/case_data/8_17feb2026/csv/cells_t1.12698e-05.csv'
+DEFAULT_DATA_PATH = 'postProcess/triage/8_17feb2026/csv/cells_t1.12698e-05.csv'
 df_path = get_int_input("Enter path to all.csv with point data", DEFAULT_DATA_PATH)
 
 output_folder = 'openfoam_scripts/python/output/'
