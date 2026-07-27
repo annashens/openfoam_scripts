@@ -1,9 +1,10 @@
 # !/bin/sh
-REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
-cd "$REPO_ROOT" || exit 1  # Run from repo root
+cd "$(dirname "$0")/.." || exit 1
+# REPO_ROOT="$(git rev-parse --show-toplevel)" || exit 1
+# cd "$REPO_ROOT" || exit 1  # Run from repo root
 # cd "${0%/*}" || exit 1    # Run from the script's directory
 
-DEFAULT_STATE="zvar_ztilde"
+DEFAULT_STATE="debug"
 
 # -----------------------------
 # Step 1: Reconstruct case if needed

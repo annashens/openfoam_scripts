@@ -112,7 +112,7 @@ if __name__ == "__main__":
         date = "2026-06-08"
 
         reduce_csv_files(
-            outDir=f"postProcess/triage/28_07jun2026/csv",
+            outDir=f"backup/debug/28_07jun2026/csv",
             unwanted_prefixes=["ddt"],
             save_cleaned_csv=True,
             delete_original=False,
@@ -121,7 +121,7 @@ if __name__ == "__main__":
                 'C2H','C2H2', 'C2H3', 'C2H4', 'C2H5', 'C2H6', 'C3H7', 'C3H8', 'CH',
                 'CH2', 'CH2(S)', 'CH2CHO', 'CH2CO', 'CH2O', 'CH2OH', 'CH3', 'CH3CHO',
                 'CH3O', 'CH3OH', 'CH4',  'HCCO', 'HCCOH', 'HCO',
-                'saved','saved_2','saved_3','saved_4','saved_5','saved_6',
+                'saved','saved_2','saved_3','saved_4','saved_5',
             ],
         )
     else:

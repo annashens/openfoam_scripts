@@ -15,8 +15,7 @@ decomposePar -force 2>&1 | tee log.decomposePar
 mpirun -np 16 --oversubscribe CSE_H3 -parallel 2>&1 \
 | uniq \
 | tee log.run \
-| grep --line-buffered -Ei "Time =|warning|FOAM|fatal|segmentation|stack" \
-
+| grep --line-buffered -Ei "Time =|warning|FOAM|fatal|segmentation|stack" 
 
 reconstructPar 2>&1 | tee log.reconstructPar 
 
